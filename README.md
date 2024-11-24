@@ -13,7 +13,7 @@ To set up and run the app, please follow these steps:
 1. Move to the directory where `pyproject.toml` is located:
 
    ```shell
-   cd clashroyale
+   cd clashroyale_project
    ```
 2. Install the dependencies:
 
@@ -54,7 +54,7 @@ To set up and run the app, please follow these steps:
    make autogenerate msg="user_init"
    ```
 
-   This will create a new migration file in `clashroyale/alembic/versions/`.
+   This will create a new migration file in `clashroyale_project/alembic/versions/`.
 
    Since the `app` service inside `docker-compose.yaml` will automatically run the `alembic upgrade head` command whenever it starts, in order to apply the new migration, you just need to stop the containers and start them again. CTRL+C to stop the containers and then run the following command to start them again:
    ```shell

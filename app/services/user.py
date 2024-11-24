@@ -9,18 +9,20 @@ from jose import JWTError, jwt
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.daos import user
+from app.daos import user, user_detailed_info
 from app.db import get_session
 from app.models.user import User as UserModel
 from app.schemas.token import Token, TokenData
-from app.schemas.user import ChangePasswordIn, UserIn, UserOut
+from app.schemas.user import ChangePasswordIn, UserRegister, UserOut
 from app.services.utils import UtilsService, oauth2_scheme
 from app.settings import settings
+
+from .royale_api_client import api_client
 
 
 class UserService:
     @staticmethod
-    async def register_user(user_data: UserIn, session: AsyncSession):
+    async def register_user(user_data: UserRegister, session: AsyncSession):
         user_exist = await UserService.user_email_exists(session, user_data.email)
 
         if user_exist:
@@ -29,13 +31,34 @@ class UserService:
                 detail="User with the given email already exists!!!",
             )
 
-        user_data.password = UtilsService.get_password_hash(user_data.password)
-        new_user = await user.UserDao(session).create(user_data.model_dump())
-        logger.info(f"New user created successfully: {new_user}!!!")
-        return JSONResponse(
-            content={"message": "User created successfully"},
-            status_code=status.HTTP_201_CREATED,
-        )
+        try:
+            player = await api_client.get_player(user_data.tag)
+        except:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalig ClashRoyale User Tag: {user_data.tag}"
+            )
+        
+        crowns = player['trophies']
+        max_crowns = player['bestTrophies']
+        
+        async with session.begin():
+            new_user_detailed_info = await user_detailed_info.UserDetailedInfoDao(session).create({"crowns": crowns, "max_crowns" : max_crowns})
+
+            user_data.password = UtilsService.get_password_hash(user_data.password)
+            
+            new_user = await user.UserDao(session).create({
+                "email": user_data.email,
+                "password": user_data.password,
+                "tag": user_data.tag,
+                "name": user_data.name,
+                "user_detailed_info_id": new_user_detailed_info.id
+            })
+            logger.info(f"New user created successfully: {new_user}!!!")
+            return JSONResponse(
+                content={"message": "User created successfully"},
+                status_code=status.HTTP_201_CREATED,
+            )
 
     @staticmethod
     async def authenticate_user(session: AsyncSession, email: str, password: str) -> UserModel | bool:

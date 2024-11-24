@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.db import SessionDep
 from app.schemas.token import Token
-from app.schemas.user import ChangePasswordIn, UserIn, UserOut
+from app.schemas.user import ChangePasswordIn, UserRegister, UserOut
 from app.services.user import CurrentUserDep, UserService
 
 router = APIRouter(tags=["User"], prefix="/user")
@@ -11,7 +11,7 @@ router = APIRouter(tags=["User"], prefix="/user")
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register_user(
-    user_data: UserIn,
+    user_data: UserRegister,
     session: SessionDep,
 ):
     return await UserService.register_user(user_data, session)

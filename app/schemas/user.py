@@ -1,10 +1,19 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 
+class UserRegister(BaseModel):
+    email: EmailStr
+    name: str
+    tag: str
+    password: str
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+
 class UserBase(BaseModel):
     email: EmailStr
-    first_name: str | None
-    last_name: str | None
+    name: str
+    
     model_config = ConfigDict(from_attributes=True)
 
 

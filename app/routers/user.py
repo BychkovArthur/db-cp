@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.db import SessionDep
 from app.schemas.token import Token
-from app.schemas.user import ChangePasswordIn, UserRegister, UserOut
+from app.schemas.user import ChangePasswordIn, UserRegister, UserOut, UserOutLogin
 from app.services.user import CurrentUserDep, UserService
 
 router = APIRouter(tags=["User"], prefix="/user")
@@ -26,8 +26,8 @@ async def token(
 
 
 @router.get("/login", status_code=status.HTTP_200_OK)
-async def login(current_user: CurrentUserDep) -> UserOut:
-    return UserOut.model_validate(current_user)
+async def login(current_user: CurrentUserDep) -> UserOutLogin:
+    return UserOutLogin.model_validate(current_user)
 
 
 @router.get("/get_by_id/{user_id}", status_code=status.HTTP_200_OK)
@@ -41,6 +41,13 @@ async def get_user_by_id(
 @router.get("/get_all", status_code=status.HTTP_200_OK)
 async def get_all_users(session: SessionDep) -> list[UserOut]:
     return await UserService.get_all_users(session)
+
+@router.get("/get_all_except_self", status_code=status.HTTP_200_OK)
+async def get_all_except_self(
+    session: SessionDep,
+    current_user: CurrentUserDep
+) -> list[UserOut]:
+    return await UserService.get_all_users_except_self(session, current_user)
 
 
 @router.delete("/delete_by_id/{user_id}", status_code=status.HTTP_200_OK)

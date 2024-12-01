@@ -1,7 +1,9 @@
+version: "3.8"
+
 services:
   app:
     container_name: "app"
-    build: . # for local dev you can use this option, for prod work you should take image from ECR
+    build: .  # for local dev you can use this option, for prod work you should take image from ECR
     # image: your-ecr.amazonaws.com/some-repo:latest
     command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
@@ -12,7 +14,8 @@ services:
       - db
     restart: always
     networks:
-      - "fast_network"
+      fast_network:
+        ipv4_address: 172.30.0.10  # Статический IP для контейнера "app"
 
   db:
     container_name: "db"
@@ -50,7 +53,10 @@ services:
 volumes:
   postgres_data:
 
-
 networks:
   fast_network:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.30.0.0/16"  # Указываем подсеть для сети

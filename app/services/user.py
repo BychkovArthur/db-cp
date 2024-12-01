@@ -31,22 +31,23 @@ class UserService:
                 detail="User with the given email already exists!!!",
             )
 
-        # try:
-        player = await api_client.get_player(user_data.tag)
-        # except:
-        #     raise HTTPException(
-        #         status_code=status.HTTP_400_BAD_REQUEST,
-        #         detail=f"Invalig ClashRoyale User Tag: {user_data.tag}"
-        #     )
+        try:
+            player = await api_client.get_player(user_data.tag)
+        except:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalig ClashRoyale User Tag: {user_data.tag}"
+            )
         
         crowns = player['trophies']
         max_crowns = player['bestTrophies']
         
-        # print('HERE', await api_client.get_player_battles(user_data.tag, limit=1))
+        new_user_detailed_info = await user_detailed_info.UserDetailedInfoDao(session).create({
+            "crowns": crowns,
+            "max_crowns" : max_crowns,
+            "clan_id" : None
+        })
         
-        # async with session.begin():
-        new_user_detailed_info = await user_detailed_info.UserDetailedInfoDao(session).create({"crowns": crowns, "max_crowns" : max_crowns})
-
         user_data.password = UtilsService.get_password_hash(user_data.password)
         
         new_user = await user.UserDao(session).create({
@@ -56,6 +57,7 @@ class UserService:
             "name": user_data.name,
             "user_detailed_info_id": new_user_detailed_info.id
         })
+        await session.commit()
         logger.info(f"New user created successfully: {new_user}!!!")
         return JSONResponse(
             content={"message": "User created successfully"},
@@ -118,6 +120,35 @@ class UserService:
     async def get_all_users(session: AsyncSession) -> list[UserOut]:
         all_users = await user.UserDao(session).get_all()
         return [UserOut.model_validate(_user) for _user in all_users]
+    
+    @staticmethod
+    async def get_all_users_except_self(
+        session: AsyncSession,
+        current_user: UserModel
+    ) -> list[UserOut]:
+        users = await user.UserDao(session).get_all_except_self(current_user.id)
+        user_ids = [_user.user_detailed_info_id for _user in users]
+        users_detailed_info = await user_detailed_info.UserDetailedInfoDao(session).get_by_ids(user_ids)
+        
+        user_detailed_info_id_to_object = {info.id: info for info in users_detailed_info}
+        
+        user_out_list = []
+        for _user in users:
+            detailed_info = user_detailed_info_id_to_object.get(_user.user_detailed_info_id)
+            crowns = detailed_info.crowns if detailed_info else 0
+            max_crowns = detailed_info.max_crowns if detailed_info else 0
+            
+            user_out = UserOut(
+                id=_user.id,
+                name=_user.name,
+                crowns=crowns,
+                max_crowns=max_crowns
+            )
+            user_out_list.append(user_out)
+        
+        return user_out_list
+        
+    
 
     @staticmethod
     async def delete_all_users(session: AsyncSession):

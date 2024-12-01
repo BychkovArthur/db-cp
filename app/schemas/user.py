@@ -19,10 +19,17 @@ class UserBase(BaseModel):
 
 class UserIn(UserBase):
     password: str
-
-
-class UserOut(UserBase):
+    
+    
+class UserOutLogin(UserBase):
     id: int
+
+
+class UserOut(BaseModel):
+    id: int
+    name: str
+    crowns: int
+    max_crowns: int
 
 
 class ChangePasswordIn(BaseModel):

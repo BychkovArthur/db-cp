@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.daos import battle_type
 from app.db import get_session
-from app.schemas.battle_type import RegisterBattleType
+from app.schemas.battle_type import CreateBattleType
 from app.settings import settings
 
 from .royale_api_client import api_client
@@ -17,7 +17,7 @@ from .royale_api_client import api_client
 
 class BattleTypeService:
     @staticmethod
-    async def register_battle_type(data: RegisterBattleType, session: AsyncSession):
+    async def register_battle_type(data: CreateBattleType, session: AsyncSession):
         new_battle_type = await battle_type.BattleTypeDao(session).create(data.model_dump())
         
         logger.info(f"New battle_type created successfully: {new_battle_type}!!!")

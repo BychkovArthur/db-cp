@@ -6,4 +6,4 @@ load_dotenv()
 
 token = os.getenv("CLASH_ROYALE_API_TOKEN")
 
-api_client = Client(token=token, is_async=True)
+api_client = Client(token=token, is_async=True, url='https://proxy.royaleapi.dev/v1')

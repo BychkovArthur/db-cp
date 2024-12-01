@@ -1,14 +1,18 @@
 from pydantic import BaseModel, ConfigDict
 
 
-class CreateBattleType(BaseModel):
+class CreateCard(BaseModel):
     name: str
-    
+    type: str
+    level: int
+
     model_config = ConfigDict(from_attributes=True)
 
 
-class UpdateBattleType(BaseModel):
+class UpdateCard(BaseModel):
     id: int
     name: str
-    
+    type: str
+    level: int
+
     model_config = ConfigDict(from_attributes=True)

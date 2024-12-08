@@ -13,8 +13,6 @@ from app.schemas.admin import RestoreDumpRequest
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
-
-# Путь для сохранения дампов
 DUMP_DIR = "/dumps/"
 
 
@@ -23,27 +21,23 @@ async def create_database_dump():
     """
     Создание дампа БД с данными и структурой всех таблиц.
     """
-    # Формируем имя файла дампа
     now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     filename = f"dump_{now}.sql"
     dump_path = os.path.join(DUMP_DIR, filename)
 
-    # Убедимся, что директория для дампов существует
     if not os.path.exists(DUMP_DIR):
         os.makedirs(DUMP_DIR)
 
     try:
-        # Формируем корректную команду для создания полного дампа
         command = [
             "pg_dump", 
-            "-U", "postgres",  # Пользователь
-            "-h", "db",  # Хост
+            "-U", "postgres",
+            "-h", "db",
             "-d", "fastdb",
-            "--format=c",  # Формат 'custom' для совместимости с pg_restore
-            "--file", dump_path  # Путь для сохранения дампа
+            "--format=c",
+            "--file", dump_path
         ]
         
-        # Выполняем команду
         subprocess.run(command, check=True, env={"PGPASSWORD": os.environ.get("POSTGRES_PASSWORD")})
         
     except subprocess.CalledProcessError as e:
@@ -65,7 +59,6 @@ async def restore_database_from_dump(request: RestoreDumpRequest):
         raise HTTPException(status_code=404, detail="Dump file not found")
 
     try:
-        # Очищаем базу данных
         logger.info("Clearing database schema...")
         clear_command = [
             "psql", "-U", "postgres", "-h", "db",
@@ -73,7 +66,6 @@ async def restore_database_from_dump(request: RestoreDumpRequest):
         ]
         subprocess.run(clear_command, check=True, env={"PGPASSWORD": os.environ.get("POSTGRES_PASSWORD")})
 
-        # Восстанавливаем данные из дампа
         logger.info("Restoring database from dump...")
         restore_command = [
             "pg_restore", "--format=c",

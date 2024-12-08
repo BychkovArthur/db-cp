@@ -103,19 +103,15 @@ if __name__ == "__main__":
         async with async_session() as session:
             dao = CardDao(session)
 
-            # Пример создания записи
             new_card = await dao.create({"name": "Archer", "type": "Troop", "level": 5})
             print("Created:", new_card)
 
-            # Пример получения по ID
             card = await dao.get_by_id(new_card.id)
             print("Fetched by ID:", card)
 
-            # Пример получения всех записей
             all_cards = await dao.get_all()
             print("All cards:", all_cards)
 
-            # Пример обновления записи
             updated_card = await dao.update_by_id(new_card.id, {
                 "name": "Archer Queen",
                 "type": "Hero",
@@ -123,11 +119,9 @@ if __name__ == "__main__":
             })
             print("Updated:", updated_card)
 
-            # Пример удаления по ID
             deleted_card = await dao.delete_by_id(new_card.id)
             print("Deleted:", deleted_card)
 
-            # Пример удаления всех записей
             await dao.delete_all()
             print("All records deleted.")
 

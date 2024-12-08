@@ -96,29 +96,23 @@ if __name__ == "__main__":
         async with async_session() as session:
             dao = ClanDao(session)
 
-            # Пример создания записи
             new_clan = await dao.create({"name": "Warriors"})
             print("Created:", new_clan)
 
-            # Пример получения по ID
             clan = await dao.get_by_id(new_clan.id)
             print("Fetched by ID:", clan)
 
-            # Пример получения всех записей
             all_clans = await dao.get_all()
             print("All clans:", all_clans)
 
-            # Пример обновления записи
             updated_clan = await dao.update_by_id(new_clan.id, {
                 "name": "Elite Warriors",
             })
             print("Updated:", updated_clan)
 
-            # Пример удаления по ID
             deleted_clan = await dao.delete_by_id(new_clan.id)
             print("Deleted:", deleted_clan)
 
-            # Пример удаления всех записей
             await dao.delete_all()
             print("All records deleted.")
 

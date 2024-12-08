@@ -16,7 +16,6 @@ class UserDetailedInfoDao:
         """)
         result = await self.session.execute(query, user_detailed_info)
         row = result.fetchone()
-        # await self.session.commit()
         return UserDetailedInfo(
             id=row.id,
             crowns=row.crowns,
@@ -149,7 +148,6 @@ if __name__ == "__main__":
         async with async_session() as session:
             dao = UserDetailedInfoDao(session)
 
-            # Пример создания записи
             new_user_detailed_info = await dao.create({
                 "crowns": 100,
                 "max_crowns": 200,
@@ -157,26 +155,21 @@ if __name__ == "__main__":
             })
             print("Created:", new_user_detailed_info)
 
-            # Пример получения по ID
             user_detailed_info = await dao.get_by_id(new_user_detailed_info.id)
             print("Fetched by ID:", user_detailed_info)
 
-            # Пример получения всех записей
             all_user_detailed_info = await dao.get_all()
             print("All user detailed info:", all_user_detailed_info)
 
-            # Пример обновления записи
             updated_user_detailed_info = await dao.update_by_id(new_user_detailed_info.id, {
                 "crowns": 150,
                 "max_crowns": 250,
             })
             print("Updated:", updated_user_detailed_info)
 
-            # Пример удаления по ID
             deleted_user_detailed_info = await dao.delete_by_id(new_user_detailed_info.id)
             print("Deleted:", deleted_user_detailed_info)
 
-            # Пример удаления всех записей
             await dao.delete_all()
             print("All user detailed info deleted.")
 

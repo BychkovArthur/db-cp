@@ -9,7 +9,6 @@ from sqlalchemy import (
     String,
     Text,
     ForeignKey,
-    UniqueConstraint,
     ARRAY,
     Boolean
 )
@@ -34,12 +33,9 @@ class User(Base):
     )
 
     user_detailed_info: Mapped["UserDetailedInfo"] = relationship("UserDetailedInfo", back_populates="users")
-    # Подписки, где текущий пользователь инициатор
     subscriptions: Mapped[list["Subscribe"]] = relationship(
         "Subscribe", foreign_keys="[Subscribe.user_id1]", overlaps="user1"
     )
-
-    # Подписки, где текущий пользователь является подписчиком
     subscribers: Mapped[list["Subscribe"]] = relationship(
         "Subscribe", foreign_keys="[Subscribe.user_id2]", overlaps="user2"
     )
@@ -66,26 +62,21 @@ class Subscribe(Base):
     user_id2: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     battle_type_id: Mapped[int] = mapped_column(ForeignKey("battle_type.id"), nullable=False)
 
-    # Связь с User через user_id1 (инициатор подписки)
     user1: Mapped["User"] = relationship(
         "User",
         foreign_keys=[user_id1],
-        back_populates="subscriptions",  # Поле в User, связанное с этой стороной
-        overlaps="subscribers",  # Чтобы избежать конфликта
+        back_populates="subscriptions",
+        overlaps="subscribers",
     )
-
-    # Связь с User через user_id2 (тот, на кого подписались)
     user2: Mapped["User"] = relationship(
         "User",
         foreign_keys=[user_id2],
-        back_populates="subscribers",  # Поле в User, связанное с этой стороной
-        overlaps="subscriptions",  # Чтобы избежать конфликта
+        back_populates="subscribers",
+        overlaps="subscriptions",
     )
 
-    # Связь с BattleType
     battle_type: Mapped["BattleType"] = relationship("BattleType", back_populates="subscriptions")
 
-    # Связь с BattleRecord
     battle_records: Mapped[list["BattleRecord"]] = relationship(
         "BattleRecord", back_populates="subscribe", cascade="all,delete"
     )

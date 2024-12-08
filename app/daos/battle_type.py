@@ -95,27 +95,21 @@ if __name__ == "__main__":
         async with async_session() as session:
             dao = BattleTypeDao(session)
 
-            # Пример создания записи
             new_battle_type = await dao.create({"name": "Epic Battle"})
             print("Created:", new_battle_type)
 
-            # Пример получения по ID
             battle_type = await dao.get_by_id(new_battle_type.id)
             print("Fetched by ID:", battle_type)
 
-            # Пример получения всех записей
             all_battle_types = await dao.get_all()
             print("All battle types:", all_battle_types)
 
-            # Пример обновления записи
             updated_battle_type = await dao.update_by_id(new_battle_type.id, {"name": "Legendary Battle"})
             print("Updated:", updated_battle_type)
 
-            # Пример удаления по ID
             deleted_battle_type = await dao.delete_by_id(new_battle_type.id)
             print("Deleted:", deleted_battle_type)
 
-            # Пример удаления всех записей
             await dao.delete_all()
             print("All records deleted.")
 

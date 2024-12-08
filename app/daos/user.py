@@ -180,7 +180,6 @@ if __name__ == "__main__":
         async with async_session() as session:
             dao = UserDao(session)
 
-            # Пример создания записи
             new_user = await dao.create({
                 "email": "user@example.com",
                 "password": "password123",
@@ -190,15 +189,12 @@ if __name__ == "__main__":
             })
             print("Created:", new_user)
 
-            # Пример получения по ID
             user = await dao.get_by_id(new_user.id)
             print("Fetched by ID:", user)
 
-            # Пример получения всех записей
             all_users = await dao.get_all()
             print("All users:", all_users)
 
-            # Пример обновления записи
             updated_user = await dao.update_by_id(new_user.id, {
                 "email": "new_email@example.com",
                 "password": "newpassword123",
@@ -208,11 +204,9 @@ if __name__ == "__main__":
             })
             print("Updated:", updated_user)
 
-            # Пример удаления по ID
             deleted_user = await dao.delete_by_id(new_user.id)
             print("Deleted:", deleted_user)
 
-            # Пример удаления всех записей
             await dao.delete_all()
             print("All users deleted.")
 

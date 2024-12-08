@@ -183,19 +183,15 @@ if __name__ == "__main__":
         async with async_session() as session:
             dao = SubscribeDao(session)
 
-            # Пример создания записи
             new_subscribe = await dao.create({"user_id1": 1, "user_id2": 2, "battle_type_id": 1})
             print("Created:", new_subscribe)
 
-            # Пример получения по ID
             subscribe = await dao.get_by_id(new_subscribe.id)
             print("Fetched by ID:", subscribe)
 
-            # Пример получения всех записей
             all_subscriptions = await dao.get_all()
             print("All subscriptions:", all_subscriptions)
 
-            # Пример обновления записи
             updated_subscribe = await dao.update_by_id(new_subscribe.id, {
                 "user_id1": 1,
                 "user_id2": 3,
@@ -203,11 +199,9 @@ if __name__ == "__main__":
             })
             print("Updated:", updated_subscribe)
 
-            # Пример удаления по ID
             deleted_subscribe = await dao.delete_by_id(new_subscribe.id)
             print("Deleted:", deleted_subscribe)
 
-            # Пример удаления всех записей
             await dao.delete_all()
             print("All records deleted.")
 

@@ -41,6 +41,7 @@ class UserDetailedInfoDao:
                 clan_id=row.clan_id
             )
         return None
+    
 
     async def get_by_ids(self, user_detailed_info_ids: list[int]) -> list[UserDetailedInfo] | None:
         """Получить записи UserDetailedInfo по списку ID."""

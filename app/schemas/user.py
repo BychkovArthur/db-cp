@@ -3,7 +3,6 @@ from pydantic import BaseModel, ConfigDict, EmailStr, field_validator
 
 class UserRegister(BaseModel):
     email: EmailStr
-    name: str
     tag: str
     password: str
     
@@ -23,6 +22,9 @@ class UserIn(UserBase):
     
 class UserOutLogin(UserBase):
     id: int
+    name: str
+    tag: str
+    is_super_user: bool
 
 
 class UserOut(BaseModel):

@@ -1,8 +1,8 @@
 """add_smth
 
-Revision ID: 2aa7b70f8f24
+Revision ID: 36c20564359d
 Revises: 
-Create Date: 2024-11-23 21:10:03.878002
+Create Date: 2024-12-07 12:33:41.804380
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '2aa7b70f8f24'
+revision = '36c20564359d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -34,6 +34,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_card_id'), 'card', ['id'], unique=False)
     op.create_table('clan',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('tag', sa.Text(), nullable=False),
     sa.Column('name', sa.Text(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
@@ -42,7 +43,6 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('crowns', sa.Integer(), nullable=False),
     sa.Column('max_crowns', sa.Integer(), nullable=False),
-    sa.Column('tag', sa.Text(), nullable=False),
     sa.Column('clan_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['clan_id'], ['clan.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -52,8 +52,9 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
     sa.Column('password', sa.String(), nullable=False),
-    sa.Column('first_name', sa.String(), nullable=True),
-    sa.Column('last_name', sa.String(), nullable=True),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('tag', sa.Text(), nullable=False),
+    sa.Column('is_super_user', sa.Boolean(), nullable=False),
     sa.Column('user_detailed_info_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_detailed_info_id'], ['user_detailed_info.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -81,7 +82,10 @@ def upgrade() -> None:
     sa.Column('user1_card_ids', sa.ARRAY(sa.Integer()), nullable=False),
     sa.Column('user2_card_ids', sa.ARRAY(sa.Integer()), nullable=False),
     sa.Column('replay', sa.Text(), nullable=True),
-    sa.ForeignKeyConstraint(['subscribe_id'], ['subscribe.id'], ),
+    sa.Column('time', sa.DateTime(), nullable=False),
+    sa.Column('winner_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['subscribe_id'], ['subscribe.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['winner_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_battle_record_id'), 'battle_record', ['id'], unique=False)

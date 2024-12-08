@@ -22,6 +22,20 @@ class SubscribeDao:
         row = result.fetchone()
         await self.session.commit()
         return Subscribe(id=row.id, user_id1=row.user_id1, user_id2=row.user_id2, battle_type_id=row.battle_type_id)
+    
+    async def get_by_user_id1(self, user_id1: int) -> list[Subscribe] | None:
+        """Получить записи по user_id1"""
+        query = text("""
+            SELECT id, user_id1, user_id2, battle_type_id
+            FROM subscribe
+            WHERE user_id1 = :user_id1
+        """)
+        result = await self.session.execute(query, {"user_id1": user_id1})
+        rows = result.fetchall()
+        subscriptions = []
+        for row in rows:
+            subscriptions.append(Subscribe(id=row.id, user_id1=row.user_id1, user_id2=row.user_id2, battle_type_id=row.battle_type_id))
+        return subscriptions
 
     async def get_by_id(self, subscribe_id: int) -> Subscribe | None:
         """Получить запись Subscribe по ID."""

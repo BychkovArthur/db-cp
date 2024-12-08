@@ -10,26 +10,26 @@ class UserDao:
     async def create(self, user: dict) -> User:
         """Создать запись User."""
         query = text("""
-            INSERT INTO public.user (email, password, name, tag, user_detailed_info_id)
-            VALUES (:email, :password, :name, :tag, :user_detailed_info_id)
-            RETURNING id, email, password, name, tag, user_detailed_info_id
+            INSERT INTO public.user (email, password, name, tag, user_detailed_info_id,is_super_user)
+            VALUES (:email, :password, :name, :tag, :user_detailed_info_id, FALSE)
+            RETURNING id, email, password, name, tag, user_detailed_info_id, is_super_user
         """)
         result = await self.session.execute(query, user)
         row = result.fetchone()
-        # await self.session.commit()
         return User(
             id=row.id,
             email=row.email,
             password=row.password,
             name=row.name,
             tag=row.tag,
-            user_detailed_info_id=row.user_detailed_info_id
+            user_detailed_info_id=row.user_detailed_info_id,
+            is_super_user=False
         )
     
     async def get_by_email(self, email: str) -> User | None:
         """Получить запись User по email."""
         query = text("""
-            SELECT id, email, password, name, tag, user_detailed_info_id
+            SELECT id, email, password, name, tag, user_detailed_info_id, is_super_user
             FROM public.user
             WHERE email = :email
         """)
@@ -42,14 +42,15 @@ class UserDao:
                 password=row.password,
                 name=row.name,
                 tag=row.tag,
-                user_detailed_info_id=row.user_detailed_info_id
+                user_detailed_info_id=row.user_detailed_info_id,
+                is_super_user=row.is_super_user
             )
         return None
 
     async def get_by_id(self, user_id: int) -> User | None:
         """Получить запись User по ID."""
         query = text("""
-            SELECT id, email, password, name, tag, user_detailed_info_id
+            SELECT id, email, password, name, tag, user_detailed_info_id, is_super_user
             FROM public.user
             WHERE id = :id
         """)
@@ -62,14 +63,15 @@ class UserDao:
                 password=row.password,
                 name=row.name,
                 tag=row.tag,
-                user_detailed_info_id=row.user_detailed_info_id
+                user_detailed_info_id=row.user_detailed_info_id,
+                is_super_user=row.is_super_user
             )
         return None
 
     async def get_all(self) -> list[User]:
         """Получить все записи User."""
         query = text("""
-            SELECT id, email, password, name, tag, user_detailed_info_id
+            SELECT id, email, password, name, tag, user_detailed_info_id, is_super_user
             FROM public.user
             ORDER BY id
         """)
@@ -82,14 +84,15 @@ class UserDao:
                 password=row.password,
                 name=row.name,
                 tag=row.tag,
-                user_detailed_info_id=row.user_detailed_info_id
+                user_detailed_info_id=row.user_detailed_info_id,
+                is_super_user=row.is_super_user
             ) for row in rows
         ]
         
     async def get_all_except_self(self, user_id: int) -> list[User]:
         """Получить все записи User."""
         query = text("""
-            SELECT id, email, password, name, tag, user_detailed_info_id
+            SELECT id, email, password, name, tag, user_detailed_info_id, is_super_user
             FROM public.user
             WHERE id <> :id
             ORDER BY id
@@ -103,7 +106,8 @@ class UserDao:
                 password=row.password,
                 name=row.name,
                 tag=row.tag,
-                user_detailed_info_id=row.user_detailed_info_id
+                user_detailed_info_id=row.user_detailed_info_id,
+                is_super_user=row.is_super_user
             ) for row in rows
         ]
 

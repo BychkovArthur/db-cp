@@ -10,13 +10,12 @@ class ClanDao:
     async def create(self, clan: dict) -> Clan:
         """Создать запись Clan."""
         query = text("""
-            INSERT INTO clan (name)
-            VALUES (:name)
-            RETURNING id, name
+            INSERT INTO clan (name, tag)
+            VALUES (:name, :tag)
+            RETURNING id, name, tag
         """)
-        result = await self.session.execute(query, {"name": clan["name"]})
+        result = await self.session.execute(query, {"name": clan["name"], "tag": clan["tag"]})
         row = result.fetchone()
-        await self.session.commit()
         return Clan(id=row.id, name=row.name)
 
     async def get_by_id(self, clan_id: int) -> Clan | None:

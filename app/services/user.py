@@ -9,7 +9,7 @@ from jose import JWTError, jwt
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.daos import user, user_detailed_info
+from app.daos import user, user_detailed_info, clan
 from app.db import get_session
 from app.models.user import User as UserModel
 from app.schemas.token import Token, TokenData
@@ -31,21 +31,32 @@ class UserService:
                 detail="User with the given email already exists!!!",
             )
 
+        user_tag = user_data.tag.upper()
+        
         try:
-            player = await api_client.get_player(user_data.tag)
+            player = await api_client.get_player(user_tag)
         except:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalig ClashRoyale User Tag: {user_data.tag}"
+                detail=f"Invalig ClashRoyale User Tag: {user_tag}"
             )
         
         crowns = player['trophies']
         max_crowns = player['bestTrophies']
+        name = player['name']
+        _clan = player.get('clan')
+        
+        clan_id = None
+        if _clan:
+            clan_id = (await clan.ClanDao(session).create({
+                "name": _clan["name"],
+                "tag": _clan["tag"][1:]
+            })).id
         
         new_user_detailed_info = await user_detailed_info.UserDetailedInfoDao(session).create({
             "crowns": crowns,
             "max_crowns" : max_crowns,
-            "clan_id" : None
+            "clan_id" : clan_id
         })
         
         user_data.password = UtilsService.get_password_hash(user_data.password)
@@ -53,8 +64,8 @@ class UserService:
         new_user = await user.UserDao(session).create({
             "email": user_data.email,
             "password": user_data.password,
-            "tag": user_data.tag,
-            "name": user_data.name,
+            "tag": user_tag,
+            "name": name,
             "user_detailed_info_id": new_user_detailed_info.id
         })
         await session.commit()

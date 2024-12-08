@@ -27,3 +27,22 @@ class UpdateBattleRecord(BaseModel):
     replay: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+    
+class BattleRecordOut(BaseModel):
+    name1: str
+    name2: str
+    user1_score: int
+    user2_score: int
+    user1_get_crowns: int
+    user2_get_crowns: int
+    is_user1_win: bool
+    
+    model_config = ConfigDict(from_attributes=True)
+    
+    
+class AggregatedBattleRecord(BaseModel):
+    name1: str
+    name2: str
+    score1: int
+    score2: int
+

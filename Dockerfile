@@ -1,33 +1,64 @@
 FROM python:3.10-slim-bullseye as requirements-stage
 
+# Устанавливаем необходимые зависимости
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Добавляем репозиторий PostgreSQL для установки клиента версии 17
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && apt-get update && apt-get install -y \
+    postgresql-client-17 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /tmp
 
+# Устанавливаем Poetry
 RUN pip install poetry
 
+# Копируем pyproject и lock-файл
 COPY ./pyproject.toml ./poetry.lock* /tmp/
 
-# we export pyproject.toml which is poetry-native to plain requirements.txt that we can install with pip
-# as it's the recommended approach thanks to which we do not have to install poetry in production-stage image
+# Экспортируем зависимости из Poetry в requirements.txt
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
 FROM python:3.10-slim-bullseye as production-stage
 
-# Install system dependencies
-RUN apt-get update && apt-get -y install libpq-dev gcc g++ curl procps net-tools tini
+# Устанавливаем системные зависимости
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    g++ \
+    curl \
+    procps \
+    net-tools \
+    tini \
+    wget \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set up the Python environment
+# Добавляем репозиторий PostgreSQL для установки клиента версии 17
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && apt-get update && apt-get install -y \
+    postgresql-client-17 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Настраиваем окружение Python
 ENV PYTHONFAULTHANDLER=1
 ENV PYTHONUNBUFFERED=1
 
-# Set the working directory
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Install the project dependencies
+# Устанавливаем зависимости из requirements.txt
 COPY --from=requirements-stage /tmp/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
-# Copy the rest of the project files
+# Копируем исходный код приложения
 COPY . /app/
 
-# Expose the application port
+# Открываем порт для приложения
 EXPOSE 8000

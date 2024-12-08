@@ -32,6 +32,7 @@ class BattleTypeDao:
             return BattleType(id=row.id, name=row.name)
         return None
 
+
     async def get_all(self) -> list[BattleType]:
         """Получить все записи BattleType."""
         query = text("""

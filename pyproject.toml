@@ -17,6 +17,8 @@ pydantic = "^2.0.3"
 asyncpg = "^0.28.0"
 clashroyale = "*"
 python-dotenv = "*"
+apscheduler = {extras = ["asyncio"], version = "^3.10.2"}
+pytz = "^2023.3"
 
 [tool.poetry.group.dev.dependencies]
 isort = "^5.12.0"

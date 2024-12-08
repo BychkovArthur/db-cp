@@ -23,7 +23,7 @@ services:
     image: postgres:latest
     restart: always
     volumes:
-      - postgres_data1:/var/lib/postgresql/data/
+      - postgres_data4:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
     environment:
@@ -52,7 +52,7 @@ services:
       - "fast_network"
 
 volumes:
-  postgres_data1:
+  postgres_data4:
   dumps_data:
 
 networks:

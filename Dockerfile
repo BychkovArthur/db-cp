@@ -15,14 +15,17 @@ RUN echo "deb http://apt.postgresql.org/pub/repos/apt bullseye-pgdg main" > /etc
 
 WORKDIR /tmp
 
-# Устанавливаем Poetry
-RUN pip install poetry
+# Устанавливаем последнюю версию Poetry
+RUN pip install --upgrade pip && \
+    pip install poetry==1.8.2
 
 # Копируем pyproject и lock-файл
 COPY ./pyproject.toml ./poetry.lock* /tmp/
 
-# Экспортируем зависимости из Poetry в requirements.txt
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+# Устанавливаем зависимости и экспортируем их в requirements.txt
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi --no-cache && \
+    poetry export -f requirements.txt --output requirements.txt --without-hashes
 
 FROM python:3.10-slim-bullseye as production-stage
 

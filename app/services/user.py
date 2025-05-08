@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
 from datetime import timedelta
-from typing import Annotated
+from typing import Annotated, List
 
 from jose import JWTError, jwt
 from loguru import logger
@@ -16,6 +16,7 @@ from app.schemas.token import Token, TokenData
 from app.schemas.user import ChangePasswordIn, UserRegister, UserOut
 from app.services.utils import UtilsService, oauth2_scheme
 from app.settings import settings
+from app.services.redis_service import redis_service
 
 from .royale_api_client import api_client
 
@@ -69,6 +70,11 @@ class UserService:
             "user_detailed_info_id": new_user_detailed_info.id
         })
         await session.commit()
+
+        # Инвалидируем кэш списка пользователей для всех пользователей
+        await redis_service.invalidate_all_users_lists()
+        logger.info("Invalidated all users lists cache after new user registration")
+        
         logger.info(f"New user created successfully: {new_user}!!!")
         return JSONResponse(
             content={"message": "User created successfully"},
@@ -98,6 +104,10 @@ class UserService:
 
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = UtilsService.create_access_token(data={"sub": _user.email}, expires_delta=access_token_expires)
+        
+        # Store token in Redis
+        await redis_service.store_token(_user.email, access_token)
+        
         token_data = {
             "access_token": access_token,
             "token_type": "Bearer",
@@ -120,8 +130,14 @@ class UserService:
             if not email:
                 raise credentials_exception
             token_data = TokenData(email=email)
+            
+            # Verify token exists in Redis
+            if not await redis_service.is_token_valid(email, token):
+                raise credentials_exception
+                
         except JWTError:
             raise credentials_exception
+            
         _user = await user.UserDao(session).get_by_email(email=token_data.email)
         if not _user:
             raise credentials_exception
@@ -137,6 +153,13 @@ class UserService:
         session: AsyncSession,
         current_user: UserModel
     ) -> list[UserOut]:
+        # Пробуем получить данные из кэша
+        cached_users = await redis_service.get_users_list(current_user.id)
+        if cached_users is not None:
+            logger.info(f"Returning cached users list for user {current_user.id}")
+            return cached_users
+
+        # Если данных нет в кэше, получаем из БД
         users = await user.UserDao(session).get_all_except_self(current_user.id)
         user_ids = [_user.user_detailed_info_id for _user in users]
         users_detailed_info = await user_detailed_info.UserDetailedInfoDao(session).get_by_ids(user_ids)
@@ -157,9 +180,11 @@ class UserService:
             )
             user_out_list.append(user_out)
         
-        return user_out_list
+        # Сохраняем результат в кэш
+        await redis_service.store_users_list(current_user.id, user_out_list)
+        logger.info(f"Cached users list for user {current_user.id}")
         
-    
+        return user_out_list
 
     @staticmethod
     async def delete_all_users(session: AsyncSession):

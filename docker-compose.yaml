@@ -3,7 +3,7 @@ version: "3.8"
 services:
   app:
     container_name: "app"
-    build: .  # for local dev you can use this option, for prod work you should take image from ECR
+    build: .  # для локальной разработки можно использовать билд, для прода лучше использовать образ из ECR
     # image: your-ecr.amazonaws.com/some-repo:latest
     command: bash -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
@@ -13,6 +13,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - redis  # Добавляем зависимость от Redis
     restart: always
     networks:
       fast_network:
@@ -23,7 +24,7 @@ services:
     image: postgres:latest
     restart: always
     volumes:
-      - postgres_data4:/var/lib/postgresql/data/
+      - postgres_data5:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
     environment:
@@ -35,25 +36,37 @@ services:
     networks:
       - "fast_network"
 
-  pgadmin:
-    container_name: "pgadmin"
-    image: dpage/pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
-    ports:
-      - "5050:80"
-    depends_on:
-      - db
+  # pgadmin:
+  #   container_name: "pgadmin"
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
+  #     - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
+  #   ports:
+  #     - "5050:80"
+  #   depends_on:
+  #     - db
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   networks:
+  #     - "fast_network"
+
+  redis:  # Добавляем сервис Redis
+    container_name: "redis"
+    image: redis:latest
     restart: always
-    env_file:
-      - .env
+    ports:
+      - "6379:6379"  # Пробрасываем порт Redis наружу (можно убрать, если не нужно)
+    volumes:
+      - redis_data:/data  # Сохраняем данные Redis
     networks:
       - "fast_network"
 
 volumes:
-  postgres_data4:
+  postgres_data5:
   dumps_data:
+  redis_data:  # Том для Redis
 
 networks:
   fast_network:

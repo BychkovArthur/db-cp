@@ -5,6 +5,7 @@ from app.db import SessionDep
 from app.schemas.token import Token
 from app.schemas.user import ChangePasswordIn, UserRegister, UserOut, UserOutLogin
 from app.services.user import CurrentUserDep, UserService
+from app.services.redis_service import redis_service
 
 router = APIRouter(tags=["User"], prefix="/user")
 
@@ -74,3 +75,10 @@ async def change_password(
     current_user: CurrentUserDep,
 ):
     return await UserService.change_password(password_data, current_user, session)
+
+
+@router.post("/logout", status_code=status.HTTP_200_OK)
+async def logout(current_user: CurrentUserDep):
+    """Logout user by invalidating their token"""
+    await redis_service.invalidate_token(current_user.email)
+    return {"message": "Successfully logged out"}

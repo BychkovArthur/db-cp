@@ -93,3 +93,17 @@ VALUES ('Golem', 'Type A', 1),
        ('Princess', 'Type B', 2),
        ('Miner', 'Type A', 3),
        ('Larry', 'Type B', 4);
+
+
+CREATE OR REPLACE FUNCTION update_updated_ts()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_ts = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_user_detailed_info_updated_ts
+BEFORE UPDATE ON user_detailed_info
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_ts();

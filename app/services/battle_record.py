@@ -11,6 +11,7 @@ from app.daos import battle_record, subscribe, user
 
 from app.models.user import User as UserModel
 from app.schemas.battle_record import BattleRecordOut, AggregatedBattleRecord
+from app.services.redis_service import redis_service
 
 
 
@@ -27,7 +28,7 @@ class BattleRecordService:
         for _battle_record in battle_records:
             opponent = await user.UserDao(session).get_by_id(subscribe_by_id[_battle_record.subscribe_id].user_id2)
             
-            result.append(BattleRecordOut(
+            battle_out = BattleRecordOut(
                 name1=current_user.name,
                 name2=opponent.name,
                 user1_score=_battle_record.user1_score,
@@ -35,7 +36,25 @@ class BattleRecordService:
                 user1_get_crowns=_battle_record.user1_get_crowns,
                 user2_get_crowns=_battle_record.user2_get_crowns,
                 is_user1_win=(_battle_record.winner_id == current_user.id)
-            ))
+            )
+            
+            # Проверяем, является ли бой новым
+            is_new_battle = True
+            
+            if is_new_battle:
+                # Отправляем событие только для новых боев
+                battle_data = {
+                    'user_id': current_user.id,
+                    'user_name': current_user.name,
+                    'opponent_name': opponent.name,
+                    'user_score': _battle_record.user1_score,
+                    'opponent_score': _battle_record.user2_score,
+                    'is_win': _battle_record.winner_id == current_user.id
+                }
+                logger.info(f"Publishing new battle event: {battle_data}")
+                await redis_service.publish_event('new_battle', battle_data)
+            
+            result.append(battle_out)
         
         return result
     
